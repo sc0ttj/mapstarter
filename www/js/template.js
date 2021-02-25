@@ -164,6 +164,7 @@ function generateCode(file,options) {
         '    .enter()',
         '    .append("path")',
         '    .attr("d",path)',
+        '    .attr("id",function(d){ return d.properties.id ? d.properties.id : null; })',
         function() {
             if (options.colorType != "choropleth") return null;
 
