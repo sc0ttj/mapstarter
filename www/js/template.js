@@ -1,4 +1,4 @@
-function generateCode(file,options) { 
+function generateCode(file,options) {
 
   var codeLines = [];
 
@@ -8,7 +8,7 @@ function generateCode(file,options) {
         '<style>',
         '',
         'body {',
-        '  font: 12px sans-serif;',
+        '  font: 16px sans-serif;',
         '}',
         '',
         'path {',
@@ -44,22 +44,22 @@ function generateCode(file,options) {
 
     if (options.tooltip) {
         codeLines = codeLines.concat([
-            'div.tooltip {',            
+            'div.tooltip {',
             '  position: absolute;',
             '  background-color: white;',
             '  border: 1px solid black;',
             '  color: black;',
             '  font-weight: bold;',
-            '  padding: 4px 8px;',            
+            '  padding: 4px 8px;',
             '  display: none;',
-            '}',        
+            '}',
             ''
         ]);
     }
 
     codeLines = codeLines.concat([
         '</style>',
-        '<body>',        
+        '<body>',
         '<script src="http://d3js.org/d3.v3.min.js"></script>',
         function(){ if (file.type == "topojson") return '<script src="http://d3js.org/topojson.v1.min.js"></script>'; return null; },
         '<script>',
@@ -75,7 +75,7 @@ function generateCode(file,options) {
             if ("center" in options.projection)
                 return '    .center(['+options.projection.center().join(",")+']) //projection center';
             return null;
-        },            
+        },
         function() {
             if ("parallels" in options.projection)
                 return '    .parallels(['+options.projection.parallels().join(",")+']) //parallels for conic projection';
@@ -93,7 +93,7 @@ function generateCode(file,options) {
             return '    .translate([width/2,height/2]) //translate to center the map in view';
 
             //return null;
-        },          
+        },
         '',
         '//Generate paths based on projection',
         'var path = d3.geo.path()',
@@ -114,9 +114,9 @@ function generateCode(file,options) {
             '',
             '//Create choropleth scale',
             'var color = d3.scale.quantize()',
-            '    .domain(['+domain+'])',            
+            '    .domain(['+domain+'])',
             '    .range(d3.range('+range.length+').map(function(i) { return "q" + i + "-'+range.length+'"; }));'
-        ]);        
+        ]);
     }
 
     if (options.zoomMode == "free") {
@@ -150,7 +150,7 @@ function generateCode(file,options) {
         '',
         '  //Create a path for each map feature in the data',
         '  features.selectAll("path")',
-        function() {            
+        function() {
             if (file.type == "topojson") {
                 for (var o in file.data.topo.objects) {
                     if (!o.match(/^[$_A-Za-z][$_A-Za-z0-9]+$/)) {
@@ -164,17 +164,42 @@ function generateCode(file,options) {
         '    .enter()',
         '    .append("path")',
         '    .attr("d",path)',
-        '    .attr("id",function(d){ return d.properties.id ? d.properties.id : null; })',
+        /**
+         *
+         * Here we can customise the data attached to our map SVGs:
+         *
+         *    - attach gssids and place names
+         *      - this requires you use Shapefiles/Geo/TopoJSON rom gov.uk
+         *
+         */
+        // auto attach gssids (check each property name used by .gov.uk or BBC)
+        '    .attr("id",function(d){ return d.properties.id ? d.properties.id : false; })',
+        '    .attr("id",function(d){ return d.properties.gssid ? d.properties.gssid : false; })',
+        '    .attr("id",function(d){ return d.properties.LAD20CD ? d.properties.LAD20CD : false; })',
+        '    .attr("id",function(d){ return d.properties.pcon19cd ? d.properties.pcon19cd : false; })',
+        '    .attr("id",function(d){ return d.properties.spc16cd ? d.properties.spc16cd : false; })',
+        '    .attr("id",function(d){ return d.properties.lac18cd ? d.properties.lac18cd : false; })',
+        '    .attr("id",function(d){ return d.properties.nawc18cd ? d.properties.nawc18cd : false; })',
+        // auto-attach place names in english (check each property name used by .gov.uk or BBC)
+        '    .attr("data-name",function(d){ return d.properties.name ? d.properties.name : false; })',
+        '    .attr("data-name",function(d){ return d.properties.n ? d.properties.n : false; })',
+        '    .attr("data-name",function(d){ return d.properties.LAD20NM ? d.properties.LAD20NM : false; })',
+        '    .attr("data-name",function(d){ return d.properties.pcon19nm ? d.properties.pcon19nm : false; })',
+        '    .attr("data-name",function(d){ return d.properties.spc16nm ? d.properties.spc16nm : false; })',
+        '    .attr("data-name",function(d){ return d.properties.lac18nm ? d.properties.lac18nm : false; })',
+        '    .attr("data-name",function(d){ return d.properties.nawc18nm ? d.properties.nawc18nm : false; })',
+        // place names in welsh  (check each property name used by .gov.uk or BBC)
+        '    .attr("data-name",function(d){ return d.properties.LAD20NMW ? d.properties.LAD20NMW : false; })',
         function() {
             if (options.colorType != "choropleth") return null;
 
             var a;
-            
+
             if (!options.choropleth.attribute.match(/^[$_A-Za-z][$_A-Za-z0-9]+$/)) {
-                a = 'd.properties["'+options.choropleth.attribute.replace('"','\"')+'"]';                        
+                a = 'd.properties["'+options.choropleth.attribute.replace('"','\"')+'"]';
             } else {
                 a = 'd.properties.'+options.choropleth.attribute;
-            }             
+            }
 
             return '    .attr("class", function(d) { return (typeof color('+a+') == "string" ? color('+a+') : ""); })';
         },
@@ -190,10 +215,10 @@ function generateCode(file,options) {
 
         codeLines = codeLines.concat([
                 '',
-                '// Zoom to feature on click',                
+                '// Zoom to feature on click',
                 'function clicked(d,i) {',
                 '',
-                '  //Add any other onClick events here',                                                
+                '  //Add any other onClick events here',
                 '',
                 '  var x, y, k;',
                 '',
@@ -204,7 +229,7 @@ function generateCode(file,options) {
                 '    x = centroid[0];',
                 '    y = centroid[1];',
                 '    k = .8 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height);',
-                '    centered = d',                
+                '    centered = d',
                 '  } else {',
                 '    x = width / 2;',
                 '    y = height / 2;',
@@ -231,10 +256,10 @@ function generateCode(file,options) {
     } else {
         codeLines = codeLines.concat([
                 '',
-                '// Add optional onClick events for features here',      
+                '// Add optional onClick events for features here',
                 '// d.properties contains the attributes (e.g. d.properties.name, d.properties.population)',
                 'function clicked(d,i) {',
-                '',               
+                '',
                 '}',
                 ''
             ]);
@@ -247,10 +272,10 @@ function generateCode(file,options) {
                 '  features.attr("transform", "translate(" + zoom.translate() + ")scale(" + zoom.scale() + ")")',
                 '      .selectAll("path").style("stroke-width", '+options.strokeWidth+' / zoom.scale() + "px" );',
                 '}',
-                ''                
+                ''
             ]);
         }
-    }    
+    }
 
     if (options.tooltip) {
         codeLines = codeLines.concat([
@@ -263,11 +288,11 @@ function generateCode(file,options) {
             '  moveTooltip();',
             '',
             '  tooltip.style("display","block")',
-            function() {               
+            function() {
                 if (!options.tooltip.match(/^[$_A-Za-z][$_A-Za-z0-9]+$/)) {
                     return '      .text(d.properties["'+options.tooltip.replace('"','\"')+'"]);'
                 }
-                return '      .text(d.properties.'+options.tooltip+');';                    
+                return '      .text(d.properties.'+options.tooltip+');';
             },
             '}',
             '',
@@ -280,15 +305,15 @@ function generateCode(file,options) {
             '//Create a tooltip, hidden at the start',
             'function hideTooltip() {',
             '  tooltip.style("display","none");',
-            '}'                        
+            '}'
         ]);
     }
 
     if (options.responsive) {
         //Add this later
-    }    
+    }
 
-    codeLines.push('</script>');    
+    codeLines.push('</script>');
 
     var result = codeLines
         .map(function(l) {

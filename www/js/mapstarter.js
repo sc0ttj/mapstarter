@@ -9,13 +9,13 @@ var body,
   paths,
   filledPaths,
   upload,
-  attributesHeader,        
+  attributesHeader,
   attributesBody,
   code,
   fileStatus,
   fileSize,
   switchLinks,
-  alerts,  
+  alerts,
   attributesTable, attributesColumns, attributesRows, noAttributes,
   attributesSortColumn, attributesSortDir = -1;
 
@@ -32,20 +32,30 @@ var currentFile = {
 
 //Default dimensions, colors, map projection, basic behavior
 var mapOptions = {
-  width: 600,
-  height: 600,        
+  width: 960,
+  height: 960,
   projectionType: "mercator",
   projection: null,
   path: null,
-  strokeWidth: 1,
-  stroke: "white",
-  fill: "steelblue",
-  highlight: "tomato",  
+  strokeWidth: 0.5,
+  stroke: "#999",
+  fill: "#F3F0F0",
+  highlight: "#CC0101",
   colorType: "simple",
-  choropleth: {buckets: 3, type: "numeric", scaleName: "YlGn", scale: d3.scale.quantize(), reverse: false, attribute: null, map: {}, default: "#999", attributeProblem: false},
+  choropleth: {
+      buckets: 3,
+      type: "numeric",
+      scaleName: "YlGn",
+      scale: d3.scale.quantize(),
+      reverse: false,
+      attribute: null,
+      map: {},
+      default: "#999",
+      attributeProblem: false
+  },
   zoomMode: "free",
-  responsive: false,
-  tooltip: false
+  responsive: true,
+  tooltip: true
 };
 
 //Currently centered feature, for zoom purposes
@@ -55,7 +65,7 @@ var zoom = d3.behavior.zoom().scaleExtent([1, Infinity])
     .on("zoom", function() {
       if (mapOptions.zoomMode == "free") {
         zoomed();
-      }      
+      }
     });
 
 var messages = {
@@ -90,7 +100,7 @@ var messages = {
   "geo-too-big": {
     "type": "error",
     "text": "Sorry, conversions to TopoJSON are currently limited to 15 MB of GeoJSON."
-  }  
+  }
 };
 
 $(document).ready(function() {
@@ -110,7 +120,7 @@ $(document).ready(function() {
   attributesHeader = attributesTable.select("thead");
   attributesBody = attributesTable.select("tbody");
   tooltip = body.select("div#tooltip");
-  code = body.select("code#download-code");    
+  code = body.select("code#download-code");
 
   $uploadFile = $("#upload-file");
 
@@ -122,18 +132,18 @@ $(document).ready(function() {
 });
 
 //Process newly loaded data
-function loaded(newFile) {          
+function loaded(newFile) {
 
-      body.classed("blanked",false);      
+      body.classed("blanked",false);
 
-      currentFile = newFile;      
+      currentFile = newFile;
 
       if (!currentFile.skip) currentFile.skip = [];
 
       switchLinks.datum(currentFile.type == "geojson" ? "topojson" : "geojson");
 
       //Choose a projection based on the data
-      chooseDefaultProjection(currentFile.data.geo);      
+      chooseDefaultProjection(currentFile.data.geo);
 
       //Get distinct properties for the attribute table, try to put ID and Name columns first, otherwise leave it alone
       var set = d3.set();
@@ -142,7 +152,7 @@ function loaded(newFile) {
         var o = getObjectName(currentFile.data.topo);
 
         currentFile.data.topo.objects[o].geometries.forEach(function(d,i) {
-          if (!d.properties) currentFile.data.topo.objects[o].geometries[i].properties = {};          
+          if (!d.properties) currentFile.data.topo.objects[o].geometries[i].properties = {};
         });
 
       }
@@ -161,7 +171,7 @@ function loaded(newFile) {
 
       attributesColumns = set.values().sort(function(a,b) {
         if (a.toLowerCase() == "id") return -1;
-        if (b.toLowerCase() == "name") return -1;        
+        if (b.toLowerCase() == "name") return -1;
         return 0;
       });
 
@@ -174,7 +184,7 @@ function loaded(newFile) {
         .on("mouseover",function(d,i) {
           if (mapOptions.colorType == "simple") d3.select("#path"+i+".filled").attr("fill",mapOptions.highlight);
         })
-        .on("mouseout",function(d,i) {                
+        .on("mouseout",function(d,i) {
           if (mapOptions.colorType == "simple") d3.select("#path"+i+".filled:not(.clicked)").attr("fill",mapOptions.fill);
         });
 
@@ -187,20 +197,20 @@ function loaded(newFile) {
 
         attributesRows.append("td")
           .text(function(d) {
-            if (a in d.properties) {              
+            if (a in d.properties) {
               if (typeof d.properties[a] === "number" || typeof d.properties[a] === "string") return ""+d.properties[a];
               return JSON.stringify(d.properties[a], null, " ");
-            } 
+            }
             return "";
-          }).on("click",function(d,rowIndex) {                        
-            //Don't allow editing of deep objects/arrays            
+          }).on("click",function(d,rowIndex) {
+            //Don't allow editing of deep objects/arrays
             if (a in d.properties && typeof d.properties[a] !== "number" && typeof d.properties[a] !== "string") return true;
 
             var cell = d3.select(this);
             var t = cell.text();
 
             var w = cell.style("width");
-            var h = cell.style("height");            
+            var h = cell.style("height");
 
             cell.html("").append("input")
               .style("width",w)
@@ -211,14 +221,14 @@ function loaded(newFile) {
               .on("click",function() {
                 d3.event.stopPropagation();
               })
-              .on("keypress",function(){                                
+              .on("keypress",function(){
                 if (d3.event.keyCode == 13) d3.select(this).node().blur();
               })
-              .on("blur",function(original) {                                
+              .on("blur",function(original) {
                 var input = d3.select(this);
                 if (input.empty()) return true;
 
-                var val = this.value;                
+                var val = this.value;
                 input.remove();
 
                 cell.text(val);
@@ -231,9 +241,9 @@ function loaded(newFile) {
 
                 if (mapOptions.colorType == "choropleth") recolor();
 
-                updateDownloads("data");                
+                updateDownloads("data");
               })
-              .node().focus();            
+              .node().focus();
           });
 
           $("select.attribute-list").append($("<option />").val(a).text(a));
@@ -246,12 +256,12 @@ function loaded(newFile) {
       attributesHeader.selectAll("th").data(attributesColumns).enter().append("th")
         .attr("class","sortable")
         .html(function(d){return '<span class="glyphicon glyphicon-sort"></span>&nbsp;'+d;})
-        .on("click",function(d,i) {          
+        .on("click",function(d,i) {
           attributesHeader.select("th.sorted").classed("sorted",false).select("span").attr("class","glyphicon glyphicon-sort");
           d3.select(this).classed("sorted",true).select("span").attr("class","glyphicon glyphicon-sort-by-attributes"+(attributesSortDir > 0 ? "-alt" : ""));
           sortAttributeRows(attributesColumns[i],-attributesSortDir);
         });
-      
+
       //For deletion
       attributesHeader.append("th").text("");
 
@@ -259,26 +269,26 @@ function loaded(newFile) {
       var deletes = attributesRows.append("td")
           .attr("class","attribute-delete")
           .on("click",function() {
-            d3.event.stopPropagation();            
+            d3.event.stopPropagation();
           });
 
-      deletes.append("a")    
+      deletes.append("a")
           .attr("href","#")
-          .on("click",function(d,i) {            
+          .on("click",function(d,i) {
             d3.event.stopPropagation();
             d3.event.preventDefault();
 
-            var isDeleted = d3.select("tr#tr"+i).classed("deleted");            
+            var isDeleted = d3.select("tr#tr"+i).classed("deleted");
             if (isDeleted) {
-              d3.select(this).html('<span>&times;</span>&nbsp;Remove').attr("title","Remove this feature");              
+              d3.select(this).html('<span>&times;</span>&nbsp;Remove').attr("title","Remove this feature");
               currentFile.skip = currentFile.skip.filter(function(s) { return s != i;});
-            } else {              
-              d3.select(this).html('<span>+</span>&nbsp;Restore').attr("title","Restore this feature");              
+            } else {
+              d3.select(this).html('<span>+</span>&nbsp;Restore').attr("title","Restore this feature");
               if (currentFile.skip.indexOf(i) == -1) currentFile.skip.push(i);
             }
-            
+
             attributesBody.select("tr#tr"+i).classed("deleted",!isDeleted);
-            map.select("path#path"+i).style("display",isDeleted ? "block" : "none");  
+            map.select("path#path"+i).style("display",isDeleted ? "block" : "none");
 
             updateDownloads("data");
             scaleMap();
@@ -293,10 +303,23 @@ function loaded(newFile) {
 
       //Insert paths with hover events for highlighting
       paths = features.selectAll("path").data(currentFile.data.geo.features).enter().append("path")
-        .attr("stroke-width",mapOptions.strokeWidth)
-        .attr("stroke",mapOptions.stroke)        
+        // .attr("stroke-width",mapOptions.strokeWidth)
+        // .attr("stroke",mapOptions.stroke)
+
+        //
+        // add the data for each "feature" to the SVG
+        //
         .attr("id",function(d,i) {
-          return "path"+i;
+          return d.properties.id ? d.properties.id : "path"+i;
+        })
+        .attr("data-name",function(d,i) {
+          return d.properties.n ? d.properties.n : null;
+        })
+        .attr("data-name",function(d,i) {
+          return d.properties.name ? d.properties.name : null;
+        })
+        .attr("data-gssid",function(d,i) {
+          return d.properties.gssid ? d.properties.gssid : null;
         })
         .attr("fill",function(d) {
           if (d.geometry.type == "LineString") return "none";
@@ -306,16 +329,19 @@ function loaded(newFile) {
           if (d.geometry.type == "LineString") return null;
           return "filled";
         })
+        //
+        // add events
+        //
         .on("click",clicked)
         .on("mousemove",function(d,i) {
           tooltip.style("top",(d3.event.pageY-35)+"px").style("left",(d3.event.pageX+5)+"px");
         })
-        .on("mouseover",function(d,i) {            
+        .on("mouseover",function(d,i) {
           var p = d3.select(this).filter(".filled");
           if (mapOptions.colorType == "simple") p.attr("fill",mapOptions.highlight);
           if (currentSection == "data") d3.select("tr#tr"+i).style("background-color","#e6e6e6");
 
-          if (mapOptions.tooltip) {            
+          if (mapOptions.tooltip) {
             var t = (typeof d.properties[mapOptions.tooltip] == "string" || d.properties[mapOptions.tooltip] == "number") ? d.properties[mapOptions.tooltip] : JSON.stringify(d.properties[mapOptions.tooltip]);
             tooltip.text(t).style("top",(d3.event.pageY-35)+"px").style("left",(d3.event.pageX+5)+"px").attr("class","");
           }
@@ -326,24 +352,24 @@ function loaded(newFile) {
           if (currentSection == "data") d3.select("tr#tr"+i).style("background-color","#fff");
           tooltip.text("").attr("class","hidden");
         });
-      
+
       filledPaths = paths.filter(function(d) { return d.geometry.type != "LineString"; });
 
-      //If it's LineStrings only and stroke color is white, change to steelblue      
+      //If it's LineStrings only and stroke color is white, change to steelblue
       if (filledPaths.empty()) {
-        var rgb = d3.rgb(mapOptions.stroke);        
+        var rgb = d3.rgb(mapOptions.stroke);
         if (rgb.r == 255 && rgb.g == 255 && rgb.b == 255) {
           mapOptions.stroke = "steelblue";
           $("input#color-stroke").val("#4682B4");
-          paths.attr("stroke",mapOptions.stroke);              
+          paths.attr("stroke",mapOptions.stroke);
         }
 
       }
 
       resetOptions();
-      
+
       //Draw the map
-      scaleMap();      
+      scaleMap();
 
       //Crop unnecessary whitespace from the non-limiting dimension on initial load
       autoCrop();
@@ -367,14 +393,14 @@ function msg(key) {
   var a = alerts.append("div")
     .attr("class","alert "+messages[key].type+" "+key)
     .text(messages[key].text);
-    
+
   a.append("span")
     .attr("class","alert-close")
     .html("&times;")
     .on("click",function() {
       a.remove();
-    });  
-          
+    });
+
 }
 
 function msgClear(key) {
@@ -396,32 +422,32 @@ function showSection(section,preserveAlerts) {
 
   if (section == "download") {
     updateDownloads("svg");
-    updateDownloads("code");    
+    updateDownloads("code");
     updateDownloads("image");
   }
 
   mapBox.classed("hidden",(section == "choose-file" || section == "help"));
 }
 
-function populateScales() {  
-  
-  mapOptions.choropleth.buckets = parseInt($("select#color-choropleth-buckets").val());  
+function populateScales() {
+
+  mapOptions.choropleth.buckets = parseInt($("select#color-choropleth-buckets").val());
   mapOptions.choropleth.attribute = $("select#color-choropleth-attribute").val();
 
   var entries = d3.entries(colorbrewer[mapOptions.choropleth.type]).filter(function(d) {
       return d.value[mapOptions.choropleth.buckets];
-    }).map(function(d) {      
+    }).map(function(d) {
       return {key: d.key, value: (mapOptions.choropleth.reverse ? d.value[mapOptions.choropleth.buckets].slice(0).reverse() : d.value[mapOptions.choropleth.buckets])};
     });
 
-  body.selectAll("div#color-choropleth-scales div").remove();  
+  body.selectAll("div#color-choropleth-scales div").remove();
 
   var scales = d3.select("div#color-choropleth-scales").selectAll(".palette")
     .data(entries)
     .enter()
     .append("div")
-    .attr("class","palette")    
-    .attr("title",function(d){return d.key;})    
+    .attr("class","palette")
+    .attr("title",function(d){return d.key;})
     .on("click",function(d) {
 
       var palette = d3.select(this);
@@ -451,7 +477,7 @@ function populateScales() {
 //Get the color scale from Colorbrewer, flip it if "Reverse" is on, set the domain based on the
 //attribute selected, set the range to the color set.  Check to make sure there are some numeric values,
 //otherwise throw a warning
-function recolor(from) {    
+function recolor(from) {
 
   mapOptions.choropleth.attributeProblem = false;
 
@@ -467,13 +493,13 @@ function recolor(from) {
   var mapped = filterFeatures(currentFile.data.geo,"geojson",currentFile.skip).features.map(function(d) {
       if (!(mapOptions.choropleth.attribute in d.properties)) return null;
       return parseNumber(d.properties[mapOptions.choropleth.attribute]);
-    }).filter(function(d) {return d !== null;});  
+    }).filter(function(d) {return d !== null;});
 
   if (!mapped.length) {
     mapOptions.choropleth.attributeProblem = true;
     filledPaths.attr("fill",mapOptions.choropleth.default);
     mapOptions.choropleth.scale = d3.scale.quantize().domain([0,1]).range(colors);
-  } else {              
+  } else {
     mapOptions.choropleth.scale = d3.scale.quantize().domain(d3.extent(mapped)).range(colors);
 
     filledPaths.attr("fill",function(d){
@@ -487,16 +513,16 @@ function recolor(from) {
       if (num === null) return mapOptions.choropleth.default;
 
       return mapOptions.choropleth.scale(num);
-            
+
     });
 
   }
-  
+
 }
 
 //Reset certain options when a new file is added
 function resetOptions() {
-      
+
   //Set color scheme to simple
   $("input#color-type-simple").prop("checked",true);
   $("input#color-type-choropleth").prop("checked",false);
@@ -509,15 +535,15 @@ function resetOptions() {
   $("select#tooltip-attribute").prop("disabled",true);
   $("span#tooltip-attribute-list").toggleClass("hidden",true);
   mapOptions.tooltip = false;
-  
+
 }
 
 function setListeners() {
-    
+
   //When that input changes, attempt to read the file
   $uploadFile.on("change",function() {
     if ($(this)[0].files.length) {
-      readFiles($(this)[0].files);      
+      readFiles($(this)[0].files);
     }
   });
 
@@ -530,11 +556,11 @@ function setListeners() {
   });
 
   //When a user drops a file, attempt to read it
-  upload.on("drop",function() {               
+  upload.on("drop",function() {
     noop();
     if (upload.classed("loading") || fileStatus.classed("loading")) return true;
     if (d3.event.dataTransfer.files.length) {
-      readFiles(d3.event.dataTransfer.files);      
+      readFiles(d3.event.dataTransfer.files);
     } else {
       msg("no-file");
       uploadComplete();
@@ -542,7 +568,7 @@ function setListeners() {
   });
 
   //Cancel menu actions while loading
-  body.selectAll("div.navbar ul a").on("click",function() {    
+  body.selectAll("div.navbar ul a").on("click",function() {
     d3.event.preventDefault();
 
     var section = d3.select(this).attr("href").replace(/^#/,"");
@@ -554,30 +580,30 @@ function setListeners() {
   });
 
   //Clicking the drag target instead triggers a <hidden input type="file">
-  upload.on("click",function() {    
+  upload.on("click",function() {
     if (!upload.classed("loading") && !fileStatus.classed("loading")) $uploadFile.click();
-  }); 
+  });
 
   //Listeners for form updates
-  $("input#color-fill").change(function(){    
+  $("input#color-fill").change(function(){
     mapOptions.fill = $(this).val();
     filledPaths.attr("fill",mapOptions.fill);
   });
 
-  $("input#color-stroke").change(function(){        
-    mapOptions.stroke = $(this).val();    
-    paths.attr("stroke",mapOptions.stroke);    
+  $("input#color-stroke").change(function(){
+    mapOptions.stroke = $(this).val();
+    paths.attr("stroke",mapOptions.stroke);
   });
 
-  $("input#color-highlight").change(function(){    
+  $("input#color-highlight").change(function(){
     mapOptions.highlight = $(this).val();
   });
 
-  $("input#color-stroke-width").change(function() {        
-    var w = parseFloat($(this).val());        
+  $("input#color-stroke-width").change(function() {
+    var w = parseFloat($(this).val());
     $(this).val(w);
-    mapOptions.strokeWidth = w;        
-    paths.attr("stroke-width",mapOptions.strokeWidth);    
+    mapOptions.strokeWidth = w;
+    paths.attr("stroke-width",mapOptions.strokeWidth);
   });
 
   $("input#input-height").change(function(){
@@ -587,14 +613,14 @@ function setListeners() {
     scaleMap();
   });
 
-  $("input#input-width").change(function(){        
+  $("input#input-width").change(function(){
     var w = Math.max(0,Math.min(3600,parseInt($(this).val())));
     $(this).val(w);
     mapOptions.width = w;
     scaleMap();
   });
 
-  $("#input-projection").change(function() {        
+  $("#input-projection").change(function() {
     mapOptions.projectionType = $(this).val();
 
     //Error check for bad albersUsa usage
@@ -608,7 +634,7 @@ function setListeners() {
       msgClear("bad-albers");
     }
 
-    scaleMap();  
+    scaleMap();
   });
 
   $("input#responsive").change(function() {
@@ -621,7 +647,7 @@ function setListeners() {
   });
 
   $("input[name='color-type']").change(function() {
-    mapOptions.colorType = $(this).val();    
+    mapOptions.colorType = $(this).val();
     d3.selectAll("div.panel-group.color-type").classed("hidden",true);
     d3.selectAll("div#color-"+mapOptions.colorType).classed("hidden",false);
     resetMap();
@@ -656,13 +682,13 @@ function setListeners() {
     else msgClear("non-numeric");
   });
 
-  $("input#color-choropleth-default").change(function(){        
+  $("input#color-choropleth-default").change(function(){
     mapOptions.choropleth.default = $(this).val();
     resetMap();
     recolor();
   });
 
-  $("input#color-choropleth-reverse").change(function(){        
+  $("input#color-choropleth-reverse").change(function(){
     mapOptions.choropleth.reverse = $(this).prop("checked");
     populateScales();
     resetMap();
@@ -671,10 +697,10 @@ function setListeners() {
 
   switchLinks.on("click",function() {
     if (!upload.classed("loading") && !fileStatus.classed("loading")) {
-      
-      fileStatus.classed("loading",true); 
 
-      var to = d3.select(this).datum();      
+      fileStatus.classed("loading",true);
+
+      var to = d3.select(this).datum();
 
       if (to == "geojson") {
         setFileType(to);
@@ -698,34 +724,34 @@ function setListeners() {
           //Once whole server is running on Node this won't be necessary
           $.post("/convert/geo-to-topo/",{geojson: stringified},function(topo) {
             currentFile.data.topo = fixTopo(topo);
-            setFileType(to); 
+            setFileType(to);
           },"json");
 
         }
-      
+
       }
-    }  
+    }
 
     d3.event.preventDefault();
   });
 
   //Process sample data links
-  d3.selectAll("a.sample-data").on("click",function() {      
+  d3.selectAll("a.sample-data").on("click",function() {
     var fn = d3.select(this).attr("href").replace(/^#/,"");
-    
+
     if (fn == "random") {
 
       var countryCodes = {"1":"AW","2":"AF","3":"AO","4":"AI","5":"AL","6":"AX","7":"AD","8":"AE","9":"AR","10":"AM","11":"AS","12":"AQ","13":"TF","14":"AG","15":"AU","16":"AT","17":"AZ","18":"BI","19":"BE","20":"BJ","21":"BF","22":"BD","23":"BG","24":"BH","25":"BS","26":"BA","27":"BL","28":"BY","29":"BZ","30":"BM","31":"BO","32":"BR","33":"BB","34":"BN","35":"BT","36":"BW","37":"CF","38":"CA","39":"CH","40":"CL","41":"CN","42":"CI","43":"CM","44":"CD","45":"CG","46":"CK","47":"CO","48":"KM","49":"CV","50":"CR","51":"CU","52":"CW","53":"KY","54":"CY","55":"CZ","56":"DE","57":"DJ","58":"DM","59":"DK","60":"DO","61":"DZ","62":"EC","63":"EG","64":"ER","65":"ES","66":"EE","67":"ET","68":"FI","69":"FJ","70":"FK","71":"FR","72":"FO","73":"FM","74":"GA","75":"GB","76":"GE","77":"GG","78":"GH","79":"GI","80":"GN","81":"GM","82":"GW","83":"GQ","84":"GR","85":"GD","86":"GL","87":"GT","88":"GU","89":"GY","90":"HK","91":"HM","92":"HN","93":"HR","94":"HT","95":"HU","96":"ID","97":"IM","98":"IN","99":"IO","100":"IE","101":"IR","102":"IQ","103":"IS","104":"IL","105":"IT","106":"JM","107":"JE","108":"JO","109":"JP","110":"KZ","111":"KE","112":"KG","113":"KH","114":"KI","115":"KN","116":"KR","117":"KW","118":"LA","119":"LB","120":"LR","121":"LY","122":"LC","123":"LI","124":"LK","125":"LS","126":"LT","127":"LU","128":"LV","129":"MO","130":"MF","131":"MA","132":"MC","133":"MD","134":"MG","135":"MV","136":"MX","137":"MH","138":"MK","139":"ML","140":"MT","141":"MM","142":"ME","143":"MN","144":"MP","145":"MZ","146":"MR","147":"MS","148":"MU","149":"MW","150":"MY","151":"NA","152":"NC","153":"NE","154":"NF","155":"NG","156":"NI","157":"NU","158":"NL","159":"NO","160":"NP","161":"NR","162":"NZ","163":"OM","164":"PK","165":"PA","166":"PN","167":"PE","168":"PH","169":"PW","170":"PG","171":"PL","172":"PR","173":"KP","174":"PT","175":"PY","176":"PS","177":"PF","178":"QA","179":"RO","180":"RU","181":"RW","182":"EH","183":"SA","184":"SD","185":"SS","186":"SN","187":"SG","188":"GS","189":"SH","190":"SB","191":"SL","192":"SV","193":"SM","194":"SO","195":"PM","196":"RS","197":"ST","198":"SR","199":"SK","200":"SI","201":"SE","202":"SZ","203":"SX","204":"SC","205":"SY","206":"TC","207":"TD","208":"TG","209":"TH","210":"TJ","211":"TM","212":"TL","213":"TO","214":"TT","215":"TN","216":"TR","217":"TV","218":"TW","219":"TZ","220":"UG","221":"UA","222":"UM","223":"UY","224":"US","225":"UZ","226":"VC","227":"VE","228":"VG","229":"VI","230":"VN","231":"VU","232":"WF","233":"WS","234":"YE","235":"ZA","236":"ZM","237":"ZW"}
 
-      var rand = Math.ceil(Math.random()*235);          
+      var rand = Math.ceil(Math.random()*235);
 
-      fn = rand+".json";    
+      fn = rand+".json";
 
-    }                
+    }
 
     upload.classed("loading",true);
-    
-    d3.json("samples/"+fn,function(error,newFile) {          
+
+    d3.json("samples/"+fn,function(error,newFile) {
       loaded(newFile);
     });
 
@@ -738,11 +764,11 @@ function setListeners() {
 //Extra wrapper function to allow for shapefiles to be uploaded as multiple files
 function readFiles(files) {
 
-  uploadStart();  
+  uploadStart();
 
   if (files.length == 1) {
     singleFile(files[0]);
-  } else {    
+  } else {
 
     var shp = [], dbf = [], prj = [], shx = [];
 
@@ -753,12 +779,12 @@ function readFiles(files) {
       else if (files[i].name.match(/[.]shx$/i)) shx.push(files[i]);
     }
 
-    if (shp.length == 1 && dbf.length == 1 && shx.length == 1) { 
+    if (shp.length == 1 && dbf.length == 1 && shx.length == 1) {
       if (prj.length != 1) prj[0] = false;
       multiFile(shp[0],dbf[0],shx[0],prj[0]);
     } else {
       msg("invalid-file");
-      uploadComplete();   
+      uploadComplete();
       return false;
     }
   }
@@ -772,10 +798,10 @@ function singleFile(file) {
   var reader = new FileReader();
   reader.onload = function (e) {
 
-    //If it's not JSON, catch the error and try it as a shapefile instead  
+    //If it's not JSON, catch the error and try it as a shapefile instead
     try {
 
-      var d = JSON.parse(e.target.result);              
+      var d = JSON.parse(e.target.result);
       newFile.type = jsonType(d);
 
       if (newFile.type == "topojson") {
@@ -790,12 +816,12 @@ function singleFile(file) {
       } else {
         loaded(newFile);
       }
-                
-    } catch(err) {  
-      zippedShapefile(file);                     
-      return false;            
-    }                  
-    
+
+    } catch(err) {
+      zippedShapefile(file);
+      return false;
+    }
+
     return true;
 
 
@@ -803,7 +829,7 @@ function singleFile(file) {
 
   reader.readAsText(file);
 
-}      
+}
 
 //Try file as a .shp file, .dbf file, .prj, and .shx file
 function multiFile(shp,dbf,shx,prj) {
@@ -823,7 +849,7 @@ function multiFile(shp,dbf,shx,prj) {
 
     //Pass file to a wrapper that will cURL the real converter, gets around cross-domain
     //Once whole server is running on Node this won't be necessary
-    d3.xhr("/convert/shp-to-geo/").post(formData,function(error,response) {                
+    d3.xhr("/convert/shp-to-geo/").post(formData,function(error,response) {
 
       console.log(error);
       console.log(response);
@@ -855,7 +881,7 @@ function sortAttributeRows(column,direction) {
   attributesSortDir = direction;
 
   var data = attributesRows.data;
-  var sorted = [];  
+  var sorted = [];
 
   var numeric = true;
 
@@ -864,7 +890,7 @@ function sortAttributeRows(column,direction) {
       numeric = false;
     }
 
-    sorted.push({index: i, data: d});    
+    sorted.push({index: i, data: d});
 
   });
 
@@ -876,14 +902,14 @@ function sortAttributeRows(column,direction) {
       var s1 = b.data.properties[column], s2 = a.data.properties[column];
     }
     if (typeof s1 !== "number") return 1;
-    if (typeof s2 !== "number") return -1;    
-    
+    if (typeof s2 !== "number") return -1;
+
     s1 = parseFloat(s1);
     s2 = parseFloat(s2);
 
     if (s1 < s2) return -1;
     if (s2 < s1) return 1;
-    return 0;    
+    return 0;
   });
   else sorted.sort(function(a,b) {
     if (direction > 0) {
@@ -900,10 +926,10 @@ function sortAttributeRows(column,direction) {
 
     if (s1 < s2) return -1;
     if (s2 < s1) return 1;
-    return 0;    
+    return 0;
   });
 
-  sorted.forEach(function(r) {    
+  sorted.forEach(function(r) {
     $("tr#tr"+r.index).appendTo(attributesBody.node());
   });
 }
@@ -912,19 +938,27 @@ function updateDownloads(type) {
   var filebase = currentFile.name.replace(/[.](json|topojson|geojson|shp|zip)$/,"");
 
   if (type == "svg") {
-    body.select("a#svg-download").attr("download",filebase+".svg").attr("href",window.URL.createObjectURL(new Blob([getSVG(currentFile.data.geo.features,currentFile.skip,mapOptions)], { "type" : "text/xml" })));  
+    body.select("a#svg-download")
+        .attr("download",filebase+".svg")
+        .attr("href", window.URL.createObjectURL(
+            new Blob(
+              [getSVG(currentFile.data.geo.features,currentFile.skip,mapOptions)],
+              { "type" : "text/xml" }
+            )
+          )
+        );
     return true;
   }
 
   if (type == "code") {
     var codeContents = generateCode(currentFile,mapOptions);
 
-    body.select("a#code-download").attr("download",filebase+".html").text(filebase+".html").attr("href",window.URL.createObjectURL(new Blob([codeContents], { "type" : "text/html" })));      
+    body.select("a#code-download").attr("download",filebase+".html").text(filebase+".html").attr("href",window.URL.createObjectURL(new Blob([codeContents], { "type" : "text/html" })));
 
     code.text(codeContents);
-            
+
     hljs.highlightBlock(code.node());
-    
+
     return true;
 
   }
@@ -932,7 +966,7 @@ function updateDownloads(type) {
   if (type == "image") {
 
     var flapjack = Pancake("map");
-    
+
     body.select("a#pancake-download").attr("download",filebase+".png").attr("href",flapjack.src);
 
     return true;
@@ -942,11 +976,11 @@ function updateDownloads(type) {
   body.selectAll("a.data-download").attr("download",currentFile.name).html(currentFile.name).attr("href",window.URL.createObjectURL(new Blob([JSON.stringify(filtered)], { "type" : "application/json" })));
   return true;
 
-  
+
 }
 
 //Update the map projection, auto-setting parallels or centers based on data
-function updateProjection(data,width,height) {                            
+function updateProjection(data,width,height) {
 
   //Projection at unit scale
   mapOptions.projection = d3.geo[mapOptions.projectionType]()
@@ -955,7 +989,7 @@ function updateProjection(data,width,height) {
 
   //Path generator
   mapOptions.path = d3.geo.path()
-      .projection(mapOptions.projection);      
+      .projection(mapOptions.projection);
 
   //Use min/max lat of data as parallels for conicEqualArea
   //Rotate around lng of the data centroid
@@ -964,12 +998,12 @@ function updateProjection(data,width,height) {
     var c = d3.geo.centroid(data);
 
     rotation = [(c[0] < 0) ? Math.abs(c[0]) : (360-c[0]) % 360,0];
-    
+
     var bounds = d3.geo.bounds(data);
     mapOptions.projection.center(c)
       .parallels([bounds[0][1],bounds[1][1]])
       .rotate(rotation);
-  }       
+  }
 
   //Find the max scale based on data bounds at unit scale, with 5% padding
   var b = mapOptions.path.bounds(data),
@@ -978,7 +1012,7 @@ function updateProjection(data,width,height) {
 
   mapOptions.projection.scale(s);
 
-  if ("parallels" in mapOptions.projection) {    
+  if ("parallels" in mapOptions.projection) {
 
     mapOptions.projection.translate(t);
 
@@ -989,10 +1023,10 @@ function updateProjection(data,width,height) {
       //Infer the true map center from the pixels, reset the projection to have simple center/translate for code readability
       mapOptions.projection.translate([0,0]);
 
-      var inv = mapOptions.projection.invert([width/2 - t[0], height/2 - t[1]]);      
+      var inv = mapOptions.projection.invert([width/2 - t[0], height/2 - t[1]]);
 
       mapOptions.projection.center(inv);
-  
+
     } else {
 
       //It's a fixed proj like albersUsa, just scale it
@@ -1010,7 +1044,7 @@ function updateProjection(data,width,height) {
 
   }
 
-  paths.attr("d",mapOptions.path);  
+  paths.attr("d",mapOptions.path);
 
 }
 
@@ -1021,12 +1055,12 @@ function autoCrop() {
   var b = mapOptions.path.bounds(currentFile.data.geo);
 
   if ((b[1][1]-b[0][1])/mapOptions.height > (b[1][0]-b[0][0])/mapOptions.width) {
-    
+
     //height is limiting factor
 
-    mapOptions.width = Math.round((b[1][0]-b[0][0])/0.95);        
-    
-    map.attr("width",mapOptions.width);        
+    mapOptions.width = Math.round((b[1][0]-b[0][0])/0.95);
+
+    map.attr("width",mapOptions.width);
 
     //Update surrounding div
     mapBox.style("width",mapOptions.width+"px");
@@ -1034,17 +1068,17 @@ function autoCrop() {
     $("input#input-width").val(mapOptions.width);
 
   } else {
-    
+
     //width is limiting factor
 
-    mapOptions.height = Math.round((b[1][1]-b[0][1])/0.95);        
-    
-    map.attr("height",mapOptions.height);        
+    mapOptions.height = Math.round((b[1][1]-b[0][1])/0.95);
+
+    map.attr("height",mapOptions.height);
 
     //Update surrounding div
     mapBox.style("height",mapOptions.height+"px");
 
-    $("input#input-height").val(mapOptions.height);        
+    $("input#input-height").val(mapOptions.height);
 
   }
 
@@ -1052,7 +1086,7 @@ function autoCrop() {
     scaleMap();
   } else {
     mapOptions.projection.translate([mapOptions.width/2,mapOptions.height/2]);
-  }  
+  }
 
   paths.attr("d",mapOptions.path);
 
@@ -1066,10 +1100,10 @@ function autoCrop() {
 function uploadStart() {
   alerts.selectAll("div").remove();
   upload.classed("loading",true);
-  body.classed("blanked",true);  
+  body.classed("blanked",true);
 }
 
-function uploadComplete() {  
+function uploadComplete() {
   upload.classed("loading",false);
 
   if (currentFile.name) {
@@ -1080,7 +1114,7 @@ function uploadComplete() {
 }
 
 //Try file as a zipped shapefile
-function zippedShapefile(file) {  
+function zippedShapefile(file) {
 
   //Require .zip extension
   if (file.name.match(/[.]zip$/i)) {
@@ -1098,7 +1132,7 @@ function zippedShapefile(file) {
 
     //Pass file to a wrapper that will cURL the real converter, gets around cross-domain
     //Once whole server is running on Node this won't be necessary
-    d3.xhr("/convert/shp-to-geo/").post(formData,function(error,response) {          
+    d3.xhr("/convert/shp-to-geo/").post(formData,function(error,response) {
 
       try {
         var newFile = {name: file.name.replace(/[.]zip$/i,".geojson"), size: response.responseText.length, data: {topo: null, geo: fixGeo(JSON.parse(response.responseText))}, type: "geojson"};
@@ -1170,25 +1204,25 @@ function scaleMap() {
 //Remove any applied transforms
 function resetMap(from) {
 
-  paths.classed("clicked", false)    
+  paths.classed("clicked", false)
     .attr("stroke-width", mapOptions.strokeWidth + "px");
 
   features.attr("transform", null);
 }
 
 //Zooming to a feature
-function clicked(d) {   
+function clicked(d) {
   if (mapOptions.zoomMode != "feature") return true;
-  
+
   var x, y, k;
 
-  if (d && centered !== d) {        
+  if (d && centered !== d) {
 
     var centroid = mapOptions.path.centroid(d);
     var b = mapOptions.path.bounds(d);
 
     x = centroid[0];
-    y = centroid[1];          
+    y = centroid[1];
     k = .8 / Math.max((b[1][0] - b[0][0]) / mapOptions.width, (b[1][1] - b[0][1]) / mapOptions.height);
 
     centered = d;
@@ -1214,12 +1248,18 @@ function clicked(d) {
 //Freeform zooming
 function zoomed() {
   features.attr("transform", "translate(" + zoom.translate() + ")scale(" + zoom.scale() + ")");
-  paths.attr("stroke-width",mapOptions.strokeWidth/zoom.scale() + "px" );  
+  paths.attr("stroke-width",mapOptions.strokeWidth/zoom.scale() + "px" );
 }
 
 //Based on map options, loop through features and generate SVG markup with styles
 function getSVG(features,skip,options) {
-  var svg = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg width="'+options.width+'" height="'+options.height+'" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">';
+  var svg = `<svg
+      id="uk"
+      class="uk svg-map"
+      width="${options.width}"
+      height="${options.height}"
+      viewBox="0 0 ${options.width} ${options.height}"
+      version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g class="transformBox">`;
 
   if (options.colorType != "simple") {
     var fills = [];
@@ -1228,7 +1268,9 @@ function getSVG(features,skip,options) {
     });
   }
 
-  features.forEach(function(d,i) {        
+  features.forEach(function(d,i) {
+
+    console.log('d', d);
 
     var fill;
 
@@ -1241,27 +1283,27 @@ function getSVG(features,skip,options) {
     } else {
       fill = fills[i];
     }
-    
+
     svg += '<path stroke-width="'+options.strokeWidth+'" stroke="'+options.stroke+'" fill="'+fill+'" d="'+options.path(d)+'" />';
 
   });
 
-  svg += '</svg>';
+  svg += '<g id="map-hovered"></g><g id="map-selected"></g></g></svg>';
   return svg;
 }
 
 //Filter features for file download links, removing features that are marked as removed in the "Data" tab
-function filterFeatures(data,type,skip) {    
-  
+function filterFeatures(data,type,skip) {
+
   if (!skip || !skip.length) return data;
 
   //Deep copy
-  var newData = $.extend(true,{},data);  
+  var newData = $.extend(true,{},data);
 
   if (type == "topojson") {
-    var o = getObjectName(data);    
+    var o = getObjectName(data);
 
-    newData.objects[o].geometries = newData.objects[o].geometries.map(function(d,i) {      
+    newData.objects[o].geometries = newData.objects[o].geometries.map(function(d,i) {
       return (skip.indexOf(i) == -1) ? d : null;
     }).filter(function(d) {
       return d !== null;
@@ -1274,6 +1316,6 @@ function filterFeatures(data,type,skip) {
       return d !== null;
     });
   }
-  
+
   return newData;
 }

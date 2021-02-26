@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">    
+    <meta charset="utf-8">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Mapstarter</title>    
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic' rel='stylesheet' type='text/css'>
+    <title>BBC Mapstarter</title>
+    <link href="css/google-fonts.css" rel="stylesheet">
     <link href="css/mapstarter.css" rel="stylesheet">
     <link href="css/highlight.tomorrow.css" rel="stylesheet">
     <link href="css/glyphicons.css" rel="stylesheet">
   </head>
   <body class="blanked">
+    <center><h1 style="padding: 16px 0;">BBC MapStarter</h1></center>
     <div class="navbar">
-      <div class="container">      
+      <div class="container">
           <ul>
-            <li class="active" id="choose-file"><a href="#choose-file"><span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Choose File...</a></li>
+            <!-- <li class="active" id="choose-file"><a href="#choose-file"><span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Choose a file...</a></li> -->
             <li id="size"><a href="#size"><span class="glyphicon glyphicon-resize-full"></span>&nbsp;Size/Projection</a></li>
             <li id="color"><a href="#color"><span class="glyphicon glyphicon-tint"></span>&nbsp;Colors</a></li>
             <li id="behavior"><a href="#behavior"><span class="glyphicon glyphicon-cog"></span>&nbsp;Behavior</a></li>
@@ -27,46 +28,48 @@
       </div>
       <div id="file-status" class="hidden">
         <div class="container">
-          <div class="loaded">Current File: <a href="#" class="filename data-download"></a>&nbsp;<span class="filesize"></span>&nbsp;&nbsp;&nbsp;<small><a href="#" class="switch-type"></a></small></div>
-          <div class="loading"><div class="loading-bar"></div></div> 
+          <div class="loaded">Current file: <a href="#" class="filename data-download"></a>&nbsp;<span class="filesize"></span>&nbsp;&nbsp;&nbsp;<small><a href="#" class="switch-type"></a></small></div>
+          <div class="loading"><div class="loading-bar"></div></div>
         </div>
       </div>
     </div>
 
-    <div class="container" id="alerts">      
+    <div class="container" id="alerts">
     </div>
-    
-    <div class="container mapstarter-section unblankable" id="section-choose-file">            
+
+    <div class="container mapstarter-section unblankable" id="section-choose-file">
       <div id="page-loaded" class="hidden">
         <div id="upload-target">
             <div class="loaded">
-              <div>Drag a shapefile, GeoJSON, or TopoJSON file here, or click to select one</div>            
+              <div>Drag a shapefile, GeoJSON, or TopoJSON file here, or click to select one</div>
             </div>
             <div class="loading">
               <div>Processing the data, this may take a moment...</div>
               <div class="loading-bar"></div>
             </div>
-        </div>      
+        </div>
         <input type="file" id="upload-file" style="display: none;" multiple />
+        <br>
         <div>
-          <strong>or try a sample file:</strong>
+          <strong>...or try a sample file:</strong>
           <a href="#countries.json" class="sample-data">World map</a>
           <a href="#ca.json" class="sample-data">CA congressional districts</a>
           <a href="#us-states.json" class="sample-data">US states</a>
           <a href="#canada.json" class="sample-data">Canadian provinces</a>
           <a href="#nyc.json" class="sample-data">NYC boroughs</a>
-          <a href="#africa.json" class="sample-data">Africa</a>          
-        </div>      
+          <a href="#africa.json" class="sample-data">Africa</a>
+        </div>
       </div>
       <div id="page-loading">
         <div class="loading-bar"></div>
       </div>
-      <h2>Mapstarter is a tool for turning a geographic data file into a map for the web.</h2>
-      <p><em>This is a work in progress.  Got ideas?  Requests?  Complaints?  Data files that didn't work?  <a href="mailto:noah@noahveltman.com">Let me know</a>.</em></p>
+      <!--
+      <h2>This tool turns various map assets into maps ideal for the web.</h2>
+      <p><em>This is a work in progress.  Got ideas?  Requests?  Complaints?  Data files that didn't work?  <a href="mailto:scott.jarvis@bbc.co.uk">Let me know</a>.</em></p>
       <h3>How does it work?</h3>
       <p>Select a GeoJSON file, TopoJSON file, or ESRI Shapefile.  It will import your data and give you a starting interactive map, automatically scaled to fit your data.  You can change the dimensions, map projection, color scheme, and add basic behaviors like zoom and tooltips. You can also inspect the data stored in your file in the "Data" tab.</p>
 
-      <p>Once you've got something you like, you can export it in one of three formats:</p>      
+      <p>Once you've got something you like, you can export it in one of three formats:</p>
       <ul>
         <li><strong>SVG</strong>: useful if you want a starting template to further customize as a flat graphic (e.g. in Adobe Illustrator).</li>
         <li><strong>Image</strong>: useful if you want an instant flat image of your map.</li>
@@ -86,7 +89,7 @@
       <p>People who want to make complex, multilayered, or heavily stylized maps.  This may still provide a useful starting point for that, but it's not going to get you very far.</p>
       <p>Mike Bostock.</p>
 
-      <h3>Some details/caveats</h3>     
+      <h3>Some details/caveats</h3>
       <p>A shapefile is typically composed of several actual files.  To import one, you need to import the .shp file, the .prj file, and the .shx file.  Assuming you want to include the attributes (like country names) as part of the map, you'll also need to import the .dbf file.  To import these files, you can either select them all (or drag them all onto the target), or you can submit a .zip file that includes all of them.  If you accidentally include unnecessary files, that's fine, they'll just get ignored.</p>
       <p>This will currently only support a single layer of geometries.  If, for example, you have a TopoJSON file with census tracts, counties, and states, all stored separately, it will only draw one of them.  I hope to fix this (see <strong>To do list</strong>).</p>
       <p>If you download the code for your map, it will rely on <a href="http://d3js.org/">D3</a> for most of the heavy lifting.  D3 is not compatible with IE8 and below, so if you need to serve old browsers, make sure you include an image fallback of some sort.</p>
@@ -94,21 +97,21 @@
       <p>This will only work on modern browsers, and I wouldn't recommend using it on your smartphone.</p>
 
       <h3>To do list</h3>
-      <ul>                
+      <ul>
         <li>Save a map to work on it later</li>
         <li>Option to add data file to a communal library</li>
         <li>Responsive scaling option for code download</li>
-        <li>Built-in image fallbacks for code download</li>        
+        <li>Built-in image fallbacks for code download</li>
         <li>Pull in data from a Google spreadsheet with Tabletop.js</li>
         <li>Feature simplification</li>
-        <li>Merge features</li>       
+        <li>Merge features</li>
         <li>Add a legend to a choropleth</li>
         <li>Categorical choropleths</li>
         <li>Support files with multiple geometry layers</li>
         <li>Auto-delete weird features (i.e. tiny islands)</li>
         <li>Split a feature into its constituent parts and edit in detail</li>
-        <li>KML importing?  Do people still use KML?</li>          
-      </ul>      
+        <li>KML importing?  Do people still use KML?</li>
+      </ul>
 
       <h3>Get in touch</h3>
       <p>
@@ -116,7 +119,7 @@
       </p>
       <p>
         You can email me at <a href="mailto:noah@noahveltman.com">noah@noahveltman.com</a>, or if you can keep it short, I'm <a href="https://twitter.com/veltman">@veltman</a> on Twitter.
-      </p>   
+      </p>
 
       <h3>Appendix: other tools and resources</h3>
       <ul>
@@ -130,22 +133,24 @@
         <li>Shan Carter has a <a href="http://shancarter.github.io/distillery/">nice tool for converting GeoJSON to TopoJSON</a>.</li>
         <li>If you want to make a tile map with custom tiles, you can get pretty far with <a href="http://cloudmade.com/">CloudMade</a> or <a href="http://www.mapbox.com/">MapBox</a>.  For full control, you'll probably want to use <a href="http://mapbox.com/tilemill/">TileMill</a>.  Lisa Williams has a <a href="http://dataforradicals.com/the-insanely-illustrated-guide-to-your-first-tile-mill-map/">tutorial on getting started with TileMill</a>.</li>
         <li>If you're in the choropleth business, the folks at MinnPost have a great utility for that called <a href="http://code.minnpost.com/tulip/">Tulip</a> with much finer controls than this offers.</li>
-        <li>If you're a developer, <a href="http://kartograph.org/">Kartograph.js</a> is a neat JavaScript library for building SVG maps that also includes support for IE7 and IE8.</li>        
-        <li>If you want to build stuff out of geodata and you don't mind paying for the privilege and giving up some control over the details, <a href="http://cartodb.com">CartoDB</a> offers a lot of features (Disclaimer: I've never used it).</li>        
+        <li>If you're a developer, <a href="http://kartograph.org/">Kartograph.js</a> is a neat JavaScript library for building SVG maps that also includes support for IE7 and IE8.</li>
+        <li>If you want to build stuff out of geodata and you don't mind paying for the privilege and giving up some control over the details, <a href="http://cartodb.com">CartoDB</a> offers a lot of features (Disclaimer: I've never used it).</li>
         <li>For detailed geodata about the entire world, <a href="http://wiki.openstreetmap.org/wiki/Main_Page">OpenStreetMap</a> is without equal, and has a vibrant ecosystem of lots of tools and services to help you extract specific data you want.  And it's free!</li>
         <li>For semi-canonical shapefiles of countries of the world, states, provinces, coastlines, or other high-level features, try <a href="http://www.naturalearthdata.com/downloads/">Natural Earth Data</a>.  To get it as TopoJSON, try Mike Bostock's <a href="https://github.com/mbostock/world-atlas">World Atlas</a> tool.
         <li>For US-specific geodata, you can try the <a href="http://www.census.gov/geo/maps-data/data/tiger.html">US Census Bureau</a>, but you'll probably end up in tears.  <a href="http://bl.ocks.org/mbostock/raw/4090846/us.json">This TopoJSON file</a> from Mike Bostock includes US counties and states and may be a shortcut.</li>
         <li>Some news organizations offer boundary services that provide geodata exports for things like congressional districts, city council districts, and ZIP codes.  The <a href="http://boundaries.latimes.com/sets/">Los Angeles Times</a>, <a href="http://boundaries.tribapps.com/">Chicago Tribune</a>, and <a href="http://boundaries.minnpost.com/#datasets">MinnPost</a> all have great ones.
         <li>In the UK, the Ordnance Survey offers <a href="https://www.ordnancesurvey.co.uk/opendatadownload/products.html">some data for download</a> and accepts custom shapefile requests if you're not in a hurry.</li>
-        <li>For miscellaneous geodata, you can try <a href="http://geocommons.com/">GeoCommons</a>.</li>    
-      </ul>                 
+        <li>For miscellaneous geodata, you can try <a href="http://geocommons.com/">GeoCommons</a>.</li>
+      </ul>
 
+    -->
+    </div>
 
-    </div><!-- /container -->    
+  <!-- /container -->
 
-    <div class="container mapstarter-section hidden" id="section-size">      
+    <div class="container mapstarter-section hidden" id="section-size">
       <div class="instructions">Options for adjusting the dimensions of your map, and the <a href="http://nationalatlas.gov/articles/mapping/a_projections.html" target="_blank">cartographic projection</a> used.</div>
-      <div class="panel">        
+      <div class="panel">
         <div class="panel-group">
          <span class="form-item">
           <label for="input-width">Width</label>
@@ -162,18 +167,18 @@
             <select id="input-projection">
               <option value="mercator">Mercator</option>
               <option value="conicEqualArea">Conic Equal Area (good for choropleths)</option>
-              <option value="robinson">Robinson (good for whole world)</option>              
+              <option value="robinson">Robinson (good for whole world)</option>
               <option value="equirectangular">Equirectangular (simple but distorting)</option>
               <option value="albersUsa">Albers USA (for whole US, insets AK and HI)</option>
             </select>
           </span>
         </div>
-      </div>      
+      </div>
     </div><!-- /container -->
 
-    <div class="container mapstarter-section hidden" id="section-color">      
+    <div class="container mapstarter-section hidden" id="section-color">
       <div class="instructions">This section includes options for coloring your map.  If you have numerical attributes, like population or literacy rate, stored as attributes, you can make a chloropleth map scaled to that attribute.</div>
-      <div class="panel">      
+      <div class="panel">
         <div class="panel-group">
           <div class="panel-header">Borders</div>
           <div>
@@ -200,7 +205,7 @@
             </span>
           </div>
         </div>
-        <div class="panel-group color-type" id="color-simple">                    
+        <div class="panel-group color-type" id="color-simple">
             <span class="form-item">
               <label for="color-fill">Fill</label>
               <input type="color" class="text" id="color-fill" value="#4682b4" />
@@ -210,12 +215,12 @@
               <input type="color" class="text" id="color-highlight" value="#ff6347" />
             </span>
         </div>
-        <div class="panel-group color-type hidden" id="color-choropleth">              
-              <div> 
+        <div class="panel-group color-type hidden" id="color-choropleth">
+              <div>
                 <span class="form-item">
                   <label for="color-choropleth-attribute">Attribute</label>
                   <select id="color-choropleth-attribute" class="attribute-list"></select>
-                </span>                          
+                </span>
                 <span class="form-item">
                   <label for="color-choropleth-buckets"># of colors</label>
                   <select id="color-choropleth-buckets">
@@ -234,27 +239,27 @@
                   <label for="color-choropleth-default">Default (blank/non-numeric values)</label>
                   <input type="color" class="text" id="color-choropleth-default" value="#999999" />
                 </span>
-                <span class="form-item">                                    
+                <span class="form-item">
                   <label for="color-choropleth-reverse">Reverse?</label>
                   <input type="checkbox" id="color-choropleth-reverse" value="yes" />
-                </span>  
+                </span>
               </div>
               <div>
-                <div class="panel-header">Color Scale</div>                
+                <div class="panel-header">Color Scale</div>
                 <div id="color-choropleth-scales">
                 </div>
                 <div class="clear"></div>
-              </div>           
-        </div>            
+              </div>
+        </div>
       </div>
     </div><!-- /container -->
 
-    <div class="container mapstarter-section hidden" id="section-behavior">      
+    <div class="container mapstarter-section hidden" id="section-behavior">
       <div class="instructions">
           <p>Options for how users can zoom/pan around your map, and whether a tooltip will appear when they mouseover a feature.  Use the map below to test your changes.</p>
           <p>This doesn't affect the SVG or PNG option on the download page, only the Code option.</p>
       </div>
-      <div class="panel">              
+      <div class="panel">
         <div class="panel-group">
           <div class="panel-header">Zoom</div>
           <div>
@@ -265,14 +270,14 @@
             <span class="form-item">
               <input type="radio" name="zoom" value="feature" id="zoom-feature" />
               <label for="zoom-feature" class="radio">Click on a feature to zoom</label>
-            </span>                      
+            </span>
             <span class="form-item">
               <input type="radio" name="zoom" value="none" id="zoom-none" />
               <label for="zoom-none" class="radio">None</label>
-            </span>        
+            </span>
           </div>
         </div>
-        <div class="panel-group">          
+        <div class="panel-group">
           <div class="panel-header">Tooltip</div>
           <div>
             <span class="form-item">
@@ -283,12 +288,12 @@
               <label for="tooltip-attribute">Which attribute?</label>
               <select id="tooltip-attribute" class="attribute-list" disabled></select>
             </span>
-          </div>                   
-        </div>        
-      </div>      
-    </div><!-- /container -->    
+          </div>
+        </div>
+      </div>
+    </div><!-- /container -->
 
-    <div class="container mapstarter-section hidden" id="section-data">            
+    <div class="container mapstarter-section hidden" id="section-data">
       <div class="panel">
         <div class="instructions">
           <p>This table contains attributes about your map that were stored in the file you uploaded.  Hover over a row in the table to highlight it on the map.</p>
@@ -307,23 +312,23 @@
           </table>
         </div>
       </div>
-    </div><!-- /container -->      
+    </div><!-- /container -->
 
     <div class="container mapstarter-section hidden" id="section-download">
       <h3>Download as an SVG</h3>
       <p><a href="#" id="svg-download">Click here</a> to download as an SVG.</p>
       <h3>Download as an image</h3>
       <p><a href="#" id="pancake-download">Click here</a> to download it as a PNG.</p>
-      <div id="svg-div"></div>         
+      <div id="svg-div"></div>
       <h3>Download the code</h3>
       <p>The code below will generate a basic version of your map in a browser. Make sure you also download the data file and save it in the same folder, or else the code won't work.</p>
       <p><strong>Download this code:</strong> <a href="#" id="code-download"></a></p>
-      <p><strong>Download your data:</strong> <a href="#" id="data-download" class="data-download"></a></p>    
+      <p><strong>Download your data:</strong> <a href="#" id="data-download" class="data-download"></a></p>
       <pre><code id="download-code" class="html xml"></code></pre>
-    </div><!-- /container -->    
+    </div><!-- /container -->
 
-    <div class="container mapstarter-section hidden" id="section-help">    
-      
+    <div class="container mapstarter-section hidden" id="section-help">
+
       <h3>How do I upload a shapefile?</h3>
       <p>An ESRI shapefile is actually usually a <em>set</em> of files with different extensions, like .shp, .dbf, or .shx.  To upload a shapefile, you have three options:</p>
       <ul>
@@ -332,7 +337,7 @@
         <li><strong>Upload a .zip file.</strong> A .zip file with a .shp file, or a .shp and a .dbf file, will be treated the same as if you uploaded the files directly.  It can have other files in there too, but they'll be ignored.</li>
       </ul>
       <h3>What are GeoJSON and TopoJSON?</h3>
-      <p>GeoJSON and TopoJSON are two web-friendly file formats for geographic data.  A GeoJSON file is a text file with a list of features and, for each one, a bunch of latitudes and longitudes describing its geometry.  A TopoJSON file is similar, but instead of storing the latitudes and longitudes directly, it describes the <em>topology</em> of a group of features, meaning the borders between them.  TopoJSON files are usually much smaller, but require a little bit of extra processing in the browser when you want to display one on a map, and can potentially lose details from the original latitudes/longitudes.  Shapefiles don't play nicely with the web, so if you upload a shapefile, it gets converted to GeoJSON.</p> 
+      <p>GeoJSON and TopoJSON are two web-friendly file formats for geographic data.  A GeoJSON file is a text file with a list of features and, for each one, a bunch of latitudes and longitudes describing its geometry.  A TopoJSON file is similar, but instead of storing the latitudes and longitudes directly, it describes the <em>topology</em> of a group of features, meaning the borders between them.  TopoJSON files are usually much smaller, but require a little bit of extra processing in the browser when you want to display one on a map, and can potentially lose details from the original latitudes/longitudes.  Shapefiles don't play nicely with the web, so if you upload a shapefile, it gets converted to GeoJSON.</p>
       <h3>What are map projections?</h3>
       <p>Map projections are different systems for displaying part of the round Earth as a flat image.  Each projection has advantages and disadvantages.  Some distort how big things are relative to each other.  Some distort where things are relative to each other or the angles between them.  One thing to consider is that when making a choropleth map, so a conic equal area projection or something else that preserves relative areas is good.  For more on map projections, see the <a href="http://nationalatlas.gov/articles/mapping/a_projections.html" target="_blank">National Atlas summary</a>.</p>
       <h3>How does the code download work?</h3>
@@ -340,21 +345,21 @@
       <h3>Where is my data being uploaded?</h3>
       <p>If you use GeoJSON or TopoJSON, it's not going anywhere, it's staying entirely in your browser.  But if you select a shapefile, or you want to convert a GeoJSON file to TopoJSON, it will be sent to a converter currently living on my server.  Any files getting converted are deleted immediately after conversion, although in the future I'll add an option for you to contribute the file to a commons for geographic data.</p>
       </ul>
-    </div><!-- /container -->    
+    </div><!-- /container -->
 
     <div id="map-box" class="hidden">
       <svg id="map">
           <g id="features">
           </g>
       </svg>
-    </div>       
+    </div>
 
-    <div id="junk" class="hidden">                  
-    </div>    
+    <div id="junk" class="hidden">
+    </div>
 
     <div id="tooltip" class="hidden"></div>
 
-    <!-- jQuery, currently not required for much, may be able to remove -->    
+    <!-- jQuery, currently not required for much, may be able to remove -->
     <script src="js/jquery-1.10.2.min.js"></script>
 
     <!-- D3 and TopoJSON -->

@@ -16,7 +16,7 @@ app.post("/convert/geo-to-topo/",function(req,res) {
 
   res.setHeader("Content-Type", "application/json");
 
-  if (!req.body || !req.body.geojson) {   
+  if (!req.body || !req.body.geojson) {
     res.send(JSON.stringify({error: "Invalid GeoJSON received."}));
     return true;
   }
@@ -25,7 +25,7 @@ app.post("/convert/geo-to-topo/",function(req,res) {
 
     var geo = JSON.parse(req.body.geojson);
     var topo = topojson.topology({collection: geo},
-      { "property-transform": function(object) { 
+      { "property-transform": function(object) {
           return object.properties;
         }
       }
@@ -35,7 +35,7 @@ app.post("/convert/geo-to-topo/",function(req,res) {
     res.send(JSON.stringify(topo));
     return true;
 
-  } catch(err) {  
+  } catch(err) {
     console.log(err);
     res.send(JSON.stringify({error: err}));
     return true;
@@ -61,7 +61,7 @@ app.post("/convert/shp-to-geo",function(req,res) {
         paths.push(req.files.zip.path);
 
       } else if (req.files.shp && req.files.dbf && req.files.shx) {
- 
+
         ["shp","dbf","shx","prj"].forEach(function(f) {
           if (!req.files[f]) return true;
           fs.renameSync(req.files[f].path,req.files.shp.path.replace(/[.][a-z]+$/i,"."+f));
