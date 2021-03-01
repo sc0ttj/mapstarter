@@ -1284,7 +1284,16 @@ function getSVG(features,skip,options) {
       fill = fills[i];
     }
 
-    svg += '<path stroke-width="'+options.strokeWidth+'" stroke="'+options.stroke+'" fill="'+fill+'" d="'+options.path(d)+'" />';
+    svg += `<path
+      stroke-width="${options.strokeWidth}"
+      stroke="${options.stroke}"
+      fill="${fill}"
+      d="${options.path(d)}"
+      ${d.properties.gssid ? `id="${d.properties.gssid}"` : ``}
+      ${d.properties.id ? `id="${d.properties.id}"` : ``}
+      ${d.properties.n ? `data-name="${d.properties.n}"` : ``}
+      ${d.properties.name ? `data-name="${d.properties.name}"` : ``}
+    />`;
 
   });
 
