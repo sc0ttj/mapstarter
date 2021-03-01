@@ -1288,25 +1288,28 @@ function getSVG(features,skip,options) {
       stroke-width="${options.strokeWidth}"
       stroke="${options.stroke}"
       fill="${fill}"
-      d="${options.path(d)}"
-      <!-- find the gssids -->
-      ${d.properties.id ? `id="${d.properties.id}"` : ``}
+      d="${options.path(d)}"`
+      // gov.uk geodata
+      // 1. find the gssids (gov.uk geodata)
+      svg += `${d.properties.id ? `id="${d.properties.id}"` : ``}
       ${d.properties.gssid ? `id="${d.properties.gssid}"` : ``}
       ${d.properties.LAD20CD ? `id="${d.properties.LAD20CD}"` : ``}
       ${d.properties.pcon19cd ? `id="${d.properties.pcon19cd}"` : ``}
       ${d.properties.spc16cd ? `id="${d.properties.spc16cd}"` : ``}
       ${d.properties.lac18cd ? `id="${d.properties.lac18cd}"` : ``}
-      ${d.properties.nawc18cd ? `id="${d.properties.nawc18cd}"` : ``}
-      <!-- find the names -->
-      ${d.properties.n ? `data-name="${d.properties.n}"` : ``}
+      ${d.properties.nawc18cd ? `id="${d.properties.nawc18cd}"` : ``}`
+      // 2. find the names
+      svg += `${d.properties.n ? `data-name="${d.properties.n}"` : ``}
       ${d.properties.name ? `data-name="${d.properties.name}"` : ``}
       ${d.properties.LAD20NM ? `data-name="${d.properties.LAD20NM}"` : ``}
       ${d.properties.pcon19nm ? `data-name="${d.properties.pcon19nm}"` : ``}
       ${d.properties.spc16nm ? `data-name="${d.properties.spc16nm}"` : ``}
       ${d.properties.lac18nm ? `data-name="${d.properties.lac18nm}"` : ``}
-      ${d.properties.nawc18nm ? `data-name="${d.properties.nawc18nm}"` : ``}
-    />`;
+      ${d.properties.nawc18nm ? `data-name="${d.properties.nawc18nm}"` : ``}`
 
+      // add data checks from other sources here
+
+    svg += `/>`;
   });
 
   svg += '<g id="map-hovered"></g><g id="map-selected"></g></g></svg>';
