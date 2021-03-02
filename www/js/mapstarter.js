@@ -55,7 +55,8 @@ var mapOptions = {
   },
   zoomMode: "free",
   responsive: true,
-  tooltip: true
+  tooltip: true,
+  whichId: 'gssid', // set to true to put the "features" name into id attr of each <path> elem
 };
 
 //Currently centered feature, for zoom purposes
@@ -120,6 +121,7 @@ $(document).ready(function() {
   attributesHeader = attributesTable.select("thead");
   attributesBody = attributesTable.select("tbody");
   tooltip = body.select("div#tooltip");
+  whichId = body.select("div#which-id");
   code = body.select("code#download-code");
 
   $uploadFile = $("#upload-file");
@@ -536,6 +538,9 @@ function resetOptions() {
   $("span#tooltip-attribute-list").toggleClass("hidden",true);
   mapOptions.tooltip = false;
 
+  // reset to default ID attr
+  $("select#which-id-attribute").val('gssid');
+  mapOptions.whichId = 'gssid'; // default to english local auth GSSIDs
 }
 
 function setListeners() {
@@ -666,6 +671,10 @@ function setListeners() {
 
   $("select#tooltip-attribute").change(function() {
     mapOptions.tooltip = $(this).val();
+  });
+
+  $("select#which-id-attribute").change(function() {
+    mapOptions.whichId = $(this).val();
   });
 
   $("select#color-choropleth-buckets").change(function() {
@@ -1269,11 +1278,7 @@ function getSVG(features,skip,options) {
   }
 
   features.forEach(function(d,i) {
-
-    console.log('d', d);
-
     var fill;
-
     if (skip && skip.indexOf(i) != -1) return true;
 
     if (options.colorType == "simple") {
@@ -1284,35 +1289,54 @@ function getSVG(features,skip,options) {
       fill = fills[i];
     }
 
-    svg += `<path
-      stroke-width="${options.strokeWidth}"
-      stroke="${options.stroke}"
-      fill="${fill}"
-      d="${options.path(d)}"`
-      // gov.uk geodata
-      // 1. find the gssids (gov.uk geodata)
-      svg += `${d.properties.id ? `id="${d.properties.id}"` : ``}
-      ${d.properties.gssid ? `id="${d.properties.gssid}"` : ``}
-      ${d.properties.LAD20CD ? `id="${d.properties.LAD20CD}"` : ``}
-      ${d.properties.pcon19cd ? `id="${d.properties.pcon19cd}"` : ``}
-      ${d.properties.spc16cd ? `id="${d.properties.spc16cd}"` : ``}
-      ${d.properties.lac18cd ? `id="${d.properties.lac18cd}"` : ``}
-      ${d.properties.nawc18cd ? `id="${d.properties.nawc18cd}"` : ``}`
-      // 2. find the names
-      svg += `${d.properties.n ? `data-name="${d.properties.n}"` : ``}
-      ${d.properties.name ? `data-name="${d.properties.name}"` : ``}
-      ${d.properties.LAD20NM ? `data-name="${d.properties.LAD20NM}"` : ``}
-      ${d.properties.pcon19nm ? `data-name="${d.properties.pcon19nm}"` : ``}
-      ${d.properties.spc16nm ? `data-name="${d.properties.spc16nm}"` : ``}
-      ${d.properties.lac18nm ? `data-name="${d.properties.lac18nm}"` : ``}
-      ${d.properties.nawc18nm ? `data-name="${d.properties.nawc18nm}"` : ``}`
+    svg += `<path stroke-width="${options.strokeWidth}" stroke="${options.stroke}" fill="${fill}" d="${options.path(d)}" `
 
-      // add data checks from other sources here
+    // gov.uk geodata
+    // 1. find the gssids (gov.uk geodata)
+    if (options.whichId === 'gssid') {
+      svg += `${d.properties.id ? ` id="${d.properties.id}"` : ``}
+      ${d.properties.gssid ? ` id="${d.properties.gssid}"` : ``}
+      ${d.properties.LAD20CD ? ` id="${d.properties.LAD20CD}"` : ``}
+      ${d.properties.pcon19cd ? ` id="${d.properties.pcon19cd}"` : ``}
+      ${d.properties.spc16cd ? ` id="${d.properties.spc16cd}"` : ``}
+      ${d.properties.lac18cd ? ` id="${d.properties.lac18cd}"` : ``}
+      ${d.properties.nawc17cd ? ` id="${d.properties.nawc17cd}"` : ``}
+      ${d.properties.nawc18cd ? ` id="${d.properties.nawc18cd}"` : ``}`
+    }
+    // add English names only
+    else if (options.whichId === 'name') {
+      svg += `${d.properties.n ? ` id="${d.properties.n}"` : ``}
+      ${d.properties.name ? ` id="${d.properties.name}"` : ``}
+      ${d.properties.LAD20NM ? ` id="${d.properties.LAD20NM}"` : ``}
+      ${d.properties.pcon19nm ? ` id="${d.properties.pcon19nm}"` : ``}
+      ${d.properties.spc16nm ? ` id="${d.properties.spc16nm}"` : ``}
+      ${d.properties.lac18nm ? ` id="${d.properties.lac18nm}"` : ``}
+      ${d.properties.nawc17nm ? ` id="${d.properties.nawc17nm}"` : ``}
+      ${d.properties.nawc18nm ? ` id="${d.properties.nawc18nm}"` : ``}`
+    }
+    // add English names, then override those names with the Welsh one (if any)
+    else if (options.whichId === 'namew') {
+      svg += `${d.properties.n ? ` id="${d.properties.n}"` : ``}
+      ${d.properties.name ? ` id="${d.properties.name}"` : ``}
+      ${d.properties.LAD20NM ? ` id="${d.properties.LAD20NM}"` : ``}
+      ${d.properties.pcon19nm ? ` id="${d.properties.pcon19nm}"` : ``}
+      ${d.properties.spc16nm ? ` id="${d.properties.spc16nm}"` : ``}
+      ${d.properties.lac18nm ? ` id="${d.properties.lac18nm}"` : ``}
+      ${d.properties.nawc17nm ? ` id="${d.properties.nawc17nm}"` : ``}
+      ${d.properties.nawc18nm ? ` id="${d.properties.nawc18nm}"` : ``}
+      ${d.properties.nawc17nm ? ` id="${d.properties.nawc17nm}"` : ``}
+      ${d.properties.nawc18nm ? ` id="${d.properties.nawc18nm}"` : ``}`
+    }
 
-    svg += `/>`;
+    // add data checks from other sources here
+
+    svg += ` />`;
   });
 
+  // this bit is needed by https://github.com/bbc/news-vj-component-map
   svg += '<g id="map-hovered"></g><g id="map-selected"></g></g></svg>';
+
+  // now return our finished SVG
   return svg;
 }
 
